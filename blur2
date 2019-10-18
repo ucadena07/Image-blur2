@@ -1,0 +1,89 @@
+class Image
+  def initialize(original_image)
+    @original_image = original_image
+    @transformed_image = nil
+  end
+  
+  def output_image
+    @original_image.each do |row|
+      puts row.join
+    end
+  end
+  
+  def output_transformed_image
+    @transformed_image.each do |row|
+      puts row.join
+    end
+  end
+  
+  def blur
+    index_ones = find_index_ones
+    transform(index_ones)
+  end
+  
+  private
+  
+  def find_index_ones
+    # Contains hashes with format { outer_index: 0, inner_index: 0 }
+    index_ones = []
+    
+    @original_image.each_with_index do |inner_array, outer_index|
+      inner_array.each_with_index do |x, inner_index|
+        if x == 1
+          index_ones << { 
+            outer_index: outer_index, 
+            inner_index: inner_index,
+            inner_array_size: inner_array.size
+          } 
+        end
+      end
+    end
+    
+    index_ones
+  end
+  
+  def transform(index_ones)
+    @transformed_image = @original_image.dup
+    
+    index_ones.each do |pixel|
+      # Transform upper pixel
+      if pixel[:outer_index] > 0
+        upper_row_index = pixel[:outer_index] - 1
+        upper_pixel_value = @transformed_image[upper_row_index][pixel[:inner_index]]
+        @transformed_image[upper_row_index][pixel[:inner_index]] = 1 if upper_pixel_value == 0
+      end
+      
+      # Transform lower pixel
+      if pixel[:outer_index] < @transformed_image.size - 1
+        lower_row_index = pixel[:outer_index] + 1
+        lower_pixel_value = @transformed_image[lower_row_index][pixel[:inner_index]]
+        @transformed_image[lower_row_index][pixel[:inner_index]] = 1 if lower_pixel_value == 0
+      end
+      
+      # Transform left pixel
+      if pixel[:inner_index] > 0
+        left_pixel_index = pixel[:inner_index] - 1
+        left_pixel_value = @transformed_image[pixel[:outer_index]][left_pixel_index]
+        @transformed_image[pixel[:outer_index]][left_pixel_index] = 1 if left_pixel_value == 0
+      end
+      
+      # Transform right pixel
+      if pixel[:inner_index] < pixel[:inner_array_size] - 1
+        right_pixel_index = pixel[:inner_index] + 1
+        right_pixel_value = @transformed_image[pixel[:outer_index]][right_pixel_index]
+        @transformed_image[pixel[:outer_index]][right_pixel_index] = 1 if right_pixel_value == 0
+      end
+    end
+  end
+end
+
+image = Image.new([
+    [0,0,0,0], #0
+    [0,1,0,0], #1
+    [0,0,0,1], #2
+    [0,1,0,0]  #3
+  ])
+  
+image.blur
+image.output_transformed_image
+		
